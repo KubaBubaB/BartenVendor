@@ -18,3 +18,4 @@ You can do a few things:
   
   
 There is a lot of room to exploit the nulls returned in dialogs - it will be fixed, but I want to finish main functionalitites first.  
+Created using only Swing - it is basic app, maybe in the far future i will update the interface to something more modern
