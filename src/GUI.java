@@ -232,13 +232,16 @@ public class GUI implements ActionListener {
                                 JOptionPane.PLAIN_MESSAGE, null,
                                 posiibilieties3,
                                 null);
+                        name = inputName();
+                        desc = inputDescr();
                     }
                     else{
                         vType = Vodka.typeOfVodka.OTHER;
+                        name = "n/a";
+                        desc = "n/a";
                     }
                     if (vType != null) {
-                        name = inputName();
-                        desc = inputDescr();
+
                         return new Vodka(name, desc, vType, isSubSubTypeImportant);
                     }
                 }
@@ -249,13 +252,16 @@ public class GUI implements ActionListener {
                         wType = (Whiskey.typeOfWhiskey) JOptionPane.showInputDialog(frame,
                                 "Select the type of whiskey", "Type of whiskey",
                                 JOptionPane.PLAIN_MESSAGE, null, posiibilieties3, null);
+                        name = inputName();
+                        desc = inputDescr();
                     }
                     else{
                         wType = Whiskey.typeOfWhiskey.OTHER;
+                        name = "n/a";
+                        desc = "n/a";
                     }
                     if (wType != null) {
-                        name = inputName();
-                        desc = inputDescr();
+
                         return new Whiskey(name, desc, wType, isSubSubTypeImportant);
                     }
                 }
@@ -266,13 +272,16 @@ public class GUI implements ActionListener {
                         bType = (Brandy.typeOfBrandy) JOptionPane.showInputDialog(frame,
                                 "Select the type of brandy", "Type of brandy",
                                 JOptionPane.PLAIN_MESSAGE, null, posiibilieties3, null);
+                        name = inputName();
+                        desc = inputDescr();
                     }
                     else{
                         bType = Brandy.typeOfBrandy.OTHER;
+                        name = "n/a";
+                        desc = "n/a";
                     }
                     if (bType != null) {
-                        name = inputName();
-                        desc = inputDescr();
+
                         return new Brandy(name, desc, bType, isSubSubTypeImportant);
                     }
                 }
@@ -283,13 +292,16 @@ public class GUI implements ActionListener {
                         gType = (Gin.typeOfGin) JOptionPane.showInputDialog(frame,
                                 "Select the type of gin", "Type of gin",
                                 JOptionPane.PLAIN_MESSAGE, null, posiibilieties3, null);
+                        name = inputName();
+                        desc = inputDescr();
                     }
                     else{
                         gType = Gin.typeOfGin.OTHER;
+                        name = "n/a";
+                        desc = "n/a";
                     }
                     if (gType != null) {
-                        name = inputName();
-                        desc = inputDescr();
+
                         return new Gin(name, desc, gType, isSubSubTypeImportant);
                     }
                 }
@@ -300,12 +312,15 @@ public class GUI implements ActionListener {
                         lType = (Liqueur.typeOfLiqueur) JOptionPane.showInputDialog(frame,
                                 "Select the type of liqueur", "Type of liqueur",
                                 JOptionPane.PLAIN_MESSAGE, null, posiibilieties3, null);
+                        name = inputName();
+                        desc = inputDescr();
                     }
                     else {
                         lType = Liqueur.typeOfLiqueur.OTHER;
+                        name = "n/a";
+                        desc = "n/a";
                     }
-                    name = inputName();
-                    desc = inputDescr();
+
                     return new Liqueur(name, desc, lType, isSubSubTypeImportant);
                 }
                 case RUM -> {
@@ -315,13 +330,16 @@ public class GUI implements ActionListener {
                         rType = (Rum.typeOfRum) JOptionPane.showInputDialog(frame,
                                 "Select the type of rum", "Type of rum",
                                 JOptionPane.PLAIN_MESSAGE, null, posiibilieties3, null);
+                        name = inputName();
+                        desc = inputDescr();
                     }
                     else{
                         rType = Rum.typeOfRum.OTHER;
+                        name = "n/a";
+                        desc = "n/a";
                     }
                     if (rType != null) {
-                        name = inputName();
-                        desc = inputDescr();
+
                         return new Rum(name, desc, rType, isSubSubTypeImportant);
                     }
                 }
@@ -333,13 +351,16 @@ public class GUI implements ActionListener {
                         tType = (Tequilla.typeOfTequilla) JOptionPane.showInputDialog(frame,
                                 "Select the type of tequilla", "Type of tequilla",
                                 JOptionPane.PLAIN_MESSAGE, null, posiibilieties3, null);
+                        name = inputName();
+                        desc = inputDescr();
                     }
                     else {
                         tType = Tequilla.typeOfTequilla.BIANCO;
+                        name = "n/a";
+                        desc = "n/a";
                     }
                     if (tType != null) {
-                        name = inputName();
-                        desc = inputDescr();
+
                         return new Tequilla(name, desc, tType, isSubSubTypeImportant);
                     }
                 }
@@ -351,13 +372,16 @@ public class GUI implements ActionListener {
                         vermType = (Vermouth.typeOfVermouth) JOptionPane.showInputDialog(frame,
                                 "Select the type of vermouth", "Type of vermouth",
                                 JOptionPane.PLAIN_MESSAGE, null, posiibilieties3, null);
+                        name = inputName();
+                        desc = inputDescr();
                     }
                     else{
                         vermType = Vermouth.typeOfVermouth.RED;
+                        name = "n/a";
+                        desc = "n/a";
                     }
                     if (vermType != null) {
-                        name = inputName();
-                        desc = inputDescr();
+
                         return new Vermouth(name, desc, vermType, isSubSubTypeImportant);
                     }
                 }
