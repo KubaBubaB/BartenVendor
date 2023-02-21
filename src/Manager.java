@@ -22,6 +22,12 @@ public class Manager {
         this.quantityInBasket = quantityInBasket;
         this.aIngr = aIngr;
     }
+    public Manager(Vector<Recipe> vRecipes){
+        this.vRecipes = vRecipes;
+        vIngr = new Vector<Ingredient>();
+        quantityInBasket = new ArrayList<Integer>();
+        aIngr = new HashNode[aIngrCapacity];
+    }
 
     public Vector<Recipe> getvRecipes() {
         return vRecipes;

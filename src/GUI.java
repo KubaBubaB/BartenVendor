@@ -7,6 +7,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Vector;
@@ -32,7 +35,15 @@ public class GUI implements ActionListener {
 
     public GUI() {
         //UTILITIES
-        menago = new Manager();
+        String path = System.getenv("LOCALAPPDATA");
+        path += "\\BartenVendor\\recipesSave.txt";
+        File f = new File(path);
+        if(f.exists() && !f.isDirectory()) {
+            menago = new Manager(LoadSave());
+        }
+        else{
+            menago = new Manager();
+        }
         missingIngr = new ArrayList<Ingredient>();
         //FRAME
         frame = new JFrame();
@@ -100,7 +111,11 @@ public class GUI implements ActionListener {
         if (e.getSource() == addIngr) {
             addIngr();
         } else if (e.getSource() == addRecipe) {
-            addRecipe();
+            try {
+                addRecipe();
+            } catch (FileNotFoundException ex) {
+                ex.printStackTrace();
+            }
         } else if (e.getSource() == showIngr) {
             showIngred();
         } else if (e.getSource() == showRecipe) {
@@ -120,8 +135,8 @@ public class GUI implements ActionListener {
         }
         menago.addIngrToBasket(tmp, inputQuant());
     }
-    //Adds recipe to 'book', connects gui with manager
-    private void addRecipe(){
+    //Adds recipe to a 'book', connects gui with manager
+    private void addRecipe() throws FileNotFoundException {
         Recipe tmp = createRecipe();
         if (tmp == null){
             //IMPLEMENT MORE ERROR HANDLING
@@ -129,6 +144,7 @@ public class GUI implements ActionListener {
         }
         //IMPLEMENT CHECKING IF NAME IS TAKEN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         menago.addRecipe(tmp);
+        saveRecipes();
     }
     //Reads name given by the user, probably cant be left empty. Should be changed to if null -> stop the process of adding
     private String inputName() {
@@ -566,7 +582,6 @@ public class GUI implements ActionListener {
         }
         return null;
     }
-
     //Handles creating Recipe
     private Recipe createRecipe(){
         String name = inputName();
@@ -618,7 +633,7 @@ public class GUI implements ActionListener {
     private boolean isSubstituable(ArrayList<Boolean> canBeSubstituted, Ingredient tmp) {
         int substituted;
         //IS SECOND CONDITION IN FIRST IF IMPORTANT???
-        if (!tmp.getIsSubSubTypeImportant() && !Objects.equals(tmp.getStringOfSubType(), "Other")){
+        if (!tmp.getIsSubSubTypeImportant() && Objects.equals(tmp.getStringOfSubType(), "Alcohol")){
             canBeSubstituted.add(true);
         }
         else if (Objects.equals(tmp.getStringOfSubType(), "Other") || Objects.equals(tmp.getStringOfSubSubType(), "Other")){
@@ -640,7 +655,7 @@ public class GUI implements ActionListener {
         }
         return false;
     }
-
+    //Returns lists of how many ingr is missing in each recipe and modifies ArrayList MissingIngr
     private int[] classifyRecipes(){
         //Managed to rewrite this part from O(n^4) to O(n^2) at the expense of space complexity
         Vector<Recipe> vRecipes = menago.getvRecipes();
@@ -707,7 +722,7 @@ public class GUI implements ActionListener {
         //At this point classifiedRecipes table holds information for how many ingredients our recipe is missing
         return classsifiedRecipes;
     }
-
+    //Shows all recipes and lists all of missing ingredients
     private void showAllRecipes(){
         int[] howManyIsMissed = classifyRecipes();
         Vector<Recipe> tmp = menago.getvRecipes();
@@ -750,6 +765,326 @@ public class GUI implements ActionListener {
         test.append("</html>");
         label.setText(test.toString());
         frame.repaint();
+    }
+
+    private void saveRecipes() throws FileNotFoundException {
+        deleteSave();
+        String path = System.getenv("LOCALAPPDATA");
+        path += "\\BartenVendor\\recipesSave.txt";
+        File recipesSave = new File(path);
+        //add handling below if mkdirs returns false
+        boolean check = recipesSave.getParentFile().mkdirs();
+        System.out.println(check);
+        PrintWriter printWriter = new PrintWriter(recipesSave);
+        //PrintWriter pw = new PrintWriter(new FileOutputStream("Recipes"));
+        Vector<Recipe> recipes = menago.getvRecipes();
+        for (Recipe rec : recipes)
+            printWriter.println(rec.toString());
+        printWriter.close();
+    }
+
+    private void deleteSave(){
+        String path = System.getenv("LOCALAPPDATA");
+        path += "\\BartenVendor\\recipesSave.txt";
+        File myObj = new File(path);
+        if (myObj.delete()) {
+            System.out.println("Deleted the file: " + myObj.getName());
+        } else {
+            System.out.println("Failed to delete the file.");
+        }
+    }
+
+    private Vector<Recipe> LoadSave(){
+        Vector<Recipe> toReturn = new Vector<Recipe>();
+        String path = System.getenv("LOCALAPPDATA");
+        path += "\\BartenVendor\\recipesSave.txt";
+        String content = null;
+        try {
+            content = Files.readString(Paths.get(path));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String[] recipes = content.split("<");
+        for(int i = 1;i<recipes.length;i++){
+            toReturn.add(stringToRecipe(recipes[i]));
+        }
+        return toReturn;
+    }
+    private Recipe stringToRecipe(String recipe){
+        //name;method;glass;description;iceType;ingrs(@name#kind#isSubSubTypeImportant#subtype#subsubtype#descr);canBeSubs(@);qauntities(@)
+        String[] parts = recipe.split(";");
+        String name = parts[0];
+        String method = parts[1];
+        String glass = parts[2];
+        String desc = parts[3];
+        String ice = parts[4];
+        String[] ingrs = parts[5].split("@");
+        String[] canBeSubs = parts[6].split("@");
+        String[] quantities = parts[7].split("@");
+        int countIngrs = ingrs.length;
+        Vector<Ingredient> vIngrs = new Vector<Ingredient>();
+        //ingrs[0] is empty string, canBeSubs[0] is also empty
+        for(int i = 1; i< countIngrs;i++){
+            vIngrs.add(stringToIngredient(ingrs[i]));
+        }
+        ArrayList<Boolean> aCanBeSubs = new ArrayList<Boolean>();
+        for(int i = 1; i< canBeSubs.length;i++){
+            aCanBeSubs.add(stringToBool(canBeSubs[i]));
+        }
+        ArrayList<Integer> quantity = new ArrayList<Integer>();
+        for (int i = 1; i< quantities.length; i++){
+            try{
+                int number = Integer.parseInt(quantities[i]);
+                quantity.add(number);
+            }
+            catch (NumberFormatException ex){
+                ex.printStackTrace();
+            }
+        }
+        return new Recipe(vIngrs,quantity,method,glass,desc,ice,name,aCanBeSubs);
+    }
+    private Ingredient stringToIngredient(String ingredient){
+        //name#kind#isSubSubTypeImportant#subtype#subsubtype#descr
+        String[] parts = ingredient.split("#");
+        String name = parts[0];
+        String kind = parts[1];
+        String SubSubTypeImportant = parts[2];
+        boolean isSubSubTypeImportant = stringToBool(SubSubTypeImportant);
+        String subType = parts[3];
+        String subSubType = parts[4];
+        String desc = parts[5];
+        //alc
+        if(Objects.equals(kind, "Alcohol")){
+            if(Objects.equals(subType,"Vodka")){
+                //PLAIN, FLAVOURED, FRUIT,OTHER
+                if(Objects.equals(subSubType,"Plain")){
+                    return new Vodka(name,desc, Vodka.typeOfVodka.PLAIN,isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Flavoured")){
+                    return new Vodka(name,desc, Vodka.typeOfVodka.FLAVOURED,isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Fruit")){
+                    return new Vodka(name,desc, Vodka.typeOfVodka.FRUIT,isSubSubTypeImportant);
+                }
+                else{
+                    return new Vodka(name,desc, Vodka.typeOfVodka.OTHER,isSubSubTypeImportant);
+                }
+            }
+            else if (Objects.equals(subType,"Whiskey")){
+                //SCOTCH,IRISH,AMERICAN,BOURBON,OTHER
+                if(Objects.equals(subSubType,"Scotch")){
+                    return  new Whiskey(name, desc, Whiskey.typeOfWhiskey.SCOTCH,isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Irish")){
+                    return  new Whiskey(name, desc, Whiskey.typeOfWhiskey.IRISH,isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"American")){
+                    return  new Whiskey(name, desc, Whiskey.typeOfWhiskey.AMERICAN,isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Bourbon")){
+                    return  new Whiskey(name, desc, Whiskey.typeOfWhiskey.BOURBON,isSubSubTypeImportant);
+                }
+                else{
+                    return  new Whiskey(name, desc, Whiskey.typeOfWhiskey.OTHER,isSubSubTypeImportant);
+                }
+            }
+            else if (Objects.equals(subType,"Vermouth")){
+                //EXTRA_DRY, SWEET_WHITE, RED, AMBER, ROSE
+                if(Objects.equals(subSubType,"Extra Dry")){
+                    return  new Vermouth(name, desc, Vermouth.typeOfVermouth.EXTRA_DRY,isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Sweet White")){
+                    return  new Vermouth(name, desc, Vermouth.typeOfVermouth.SWEET_WHITE,isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Red")){
+                    return  new Vermouth(name, desc, Vermouth.typeOfVermouth.RED,isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Amber")){
+                    return  new Vermouth(name, desc, Vermouth.typeOfVermouth.AMBER,isSubSubTypeImportant);
+                }
+                else{
+                    return  new Vermouth(name, desc, Vermouth.typeOfVermouth.ROSE,isSubSubTypeImportant);
+                }
+            }
+            else if (Objects.equals(subType,"Tequilla")){
+                //BIANCO, REPOSADO, ANEJO, EXTRA_ANEJO, CRISTALINO
+                if(Objects.equals(subSubType,"Bianco")){
+                    return  new Tequilla(name, desc, Tequilla.typeOfTequilla.BIANCO,isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Reposado")){
+                    return  new Tequilla(name, desc, Tequilla.typeOfTequilla.REPOSADO,isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Anejo")){
+                    return  new Tequilla(name, desc, Tequilla.typeOfTequilla.ANEJO,isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Extra Anejo")){
+                    return  new Tequilla(name, desc, Tequilla.typeOfTequilla.EXTRA_ANEJO,isSubSubTypeImportant);
+                }
+                else{
+                    return  new Tequilla(name, desc, Tequilla.typeOfTequilla.CRISTALINO,isSubSubTypeImportant);
+                }
+            }
+            else if (Objects.equals(subType,"Rum")){
+                //WHITE, DARK, GOLD, PACIFIC, AGRICOLE, OVERPROOF, SPICED, AGED, OTHER
+                if(Objects.equals(subSubType,"White")){
+                    return new Rum(name, desc, Rum.typeOfRum.WHITE,isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Dark")){
+                    return new Rum(name, desc, Rum.typeOfRum.DARK,isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Gold")){
+                    return new Rum(name, desc, Rum.typeOfRum.GOLD,isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Pacific")){
+                    return new Rum(name, desc, Rum.typeOfRum.PACIFIC,isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Agricole")){
+                    return new Rum(name, desc, Rum.typeOfRum.AGRICOLE,isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Overproof")){
+                    return new Rum(name, desc, Rum.typeOfRum.OVERPROOF,isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Spiced")){
+                    return new Rum(name, desc, Rum.typeOfRum.SPICED,isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Aged")){
+                    return new Rum(name, desc, Rum.typeOfRum.AGED,isSubSubTypeImportant);
+                }
+                else{
+                    return new Rum(name, desc, Rum.typeOfRum.OTHER,isSubSubTypeImportant);
+                }
+            }
+            else if (Objects.equals(subType,"Liqueur")){
+                //TRIPLE_SEC, ELDERFLOWER, IRISH_CREAM, COFFEE, COCONUT, PEACH, BLUE_CURACAO, OTHER
+                if(Objects.equals(subSubType,"Triple Sec")){
+                    return new Liqueur(name, desc, Liqueur.typeOfLiqueur.TRIPLE_SEC, isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Elderflower")){
+                    return new Liqueur(name, desc, Liqueur.typeOfLiqueur.ELDERFLOWER, isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Irish Cream")){
+                    return new Liqueur(name, desc, Liqueur.typeOfLiqueur.IRISH_CREAM, isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Coffee")){
+                    return new Liqueur(name, desc, Liqueur.typeOfLiqueur.COFFEE, isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Coconut")){
+                    return new Liqueur(name, desc, Liqueur.typeOfLiqueur.COCONUT, isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Peach")){
+                    return new Liqueur(name, desc, Liqueur.typeOfLiqueur.PEACH, isSubSubTypeImportant);
+                }
+                else if (Objects.equals(subSubType,"Blue Curacao")){
+                    return new Liqueur(name, desc, Liqueur.typeOfLiqueur.BLUE_CURACAO, isSubSubTypeImportant);
+                }
+                else{
+                    return new Liqueur(name, desc, Liqueur.typeOfLiqueur.OTHER, isSubSubTypeImportant);
+                }
+            }
+            else if (Objects.equals(subType,"Gin")){
+                // LONDON_DRY,OTHER
+                if(Objects.equals(subSubType,"London Dry")){
+                    return new Gin(name, desc, Gin.typeOfGin.LONDON_DRY, isSubSubTypeImportant);
+                }
+                else{
+                    return new Gin(name, desc, Gin.typeOfGin.OTHER, isSubSubTypeImportant);
+                }
+            }
+            else if (Objects.equals(subType,"Brandy")){
+                if(Objects.equals(subSubType,"Cognac")){
+                    return new Brandy(name, desc, Brandy.typeOfBrandy.COGNAC, isSubSubTypeImportant);
+                }
+                else{
+                    return new Brandy(name, desc, Brandy.typeOfBrandy.OTHER, isSubSubTypeImportant);
+                }
+            }
+            else{
+                return new Aother(name, desc);
+            }
+        }
+        //soft
+        else if (Objects.equals(kind, "Soft")){
+            //JUICE, SYRUP, SDRINK, OTHER
+            if(Objects.equals(subType, "Juice")){
+                //ORANGE,LEMON,LIME,PINEAPPLE, CRANBERRY, OTHER
+                if(Objects.equals(subSubType,"Orange")){
+                    return new Juice(name, desc, Juice.typeOfJuice.ORANGE);
+                }
+                else if (Objects.equals(subSubType,"Lemon")){
+                    return new Juice(name, desc, Juice.typeOfJuice.LEMON);
+                }
+                else if (Objects.equals(subSubType,"Lime")){
+                    return new Juice(name, desc, Juice.typeOfJuice.LIME);
+                }
+                else if (Objects.equals(subSubType,"Pineapple")){
+                    return new Juice(name, desc, Juice.typeOfJuice.PINEAPPLE);
+                }
+                else if(Objects.equals(subSubType,"Cranberry")){
+                    return new Juice(name, desc, Juice.typeOfJuice.CRANBERRY);
+                }
+                else{
+                    return new Juice(name, desc, Juice.typeOfJuice.OTHER);
+                }
+            }
+            else if (Objects.equals(subType,"Syrup")){
+                //SIMPLE, CINNAMOON, FALERNUM, GRENADINE, ELDERFLOWER, LEMON_GRASS, RASPBERRY, VANILLA, OTHER
+                if(Objects.equals(subSubType,"Simple")){
+                    return new Syrup(name, desc, Syrup.typeOfSyrup.SIMPLE);
+                }
+                else if (Objects.equals(subSubType,"Cinnamoon")){
+                    return new Syrup(name, desc, Syrup.typeOfSyrup.CINNAMOON);
+                }
+                else if (Objects.equals(subSubType,"Falernum")){
+                    return new Syrup(name, desc, Syrup.typeOfSyrup.FALERNUM);
+                }
+                else if (Objects.equals(subSubType,"Grenadine")){
+                    return new Syrup(name, desc, Syrup.typeOfSyrup.GRENADINE);
+                }
+                else if(Objects.equals(subSubType,"Elderflower")){
+                    return new Syrup(name, desc, Syrup.typeOfSyrup.ELDERFLOWER);
+                }
+                else if (Objects.equals(subSubType,"Lemon Grass")){
+                    return new Syrup(name, desc, Syrup.typeOfSyrup.LEMON_GRASS);
+                }
+                else if (Objects.equals(subSubType,"Raspberry")){
+                    return new Syrup(name, desc, Syrup.typeOfSyrup.RASPBERRY);
+                }
+                else if (Objects.equals(subSubType,"Vanilla")){
+                    return new Syrup(name, desc, Syrup.typeOfSyrup.VANILLA);
+                }
+                else{
+                    return new Syrup(name, desc, Syrup.typeOfSyrup.OTHER);
+                }
+            }
+            else if (Objects.equals(subType,"Soft Drink")){
+                //COLA, SPARKLING_WATER, SPRITE, FANTA, OTHER
+                if(Objects.equals(subSubType,"Cola")){
+                    return new Sdrink(name, desc, Sdrink.typeOfSdrink.COLA);
+                }
+                else if (Objects.equals(subSubType,"Sparkling Water")){
+                    return new Sdrink(name, desc, Sdrink.typeOfSdrink.SPARKLING_WATER);
+                }
+                else if (Objects.equals(subSubType,"Sprite")){
+                    return new Sdrink(name, desc, Sdrink.typeOfSdrink.SPRITE);
+                }
+                else if (Objects.equals(subSubType,"Fanta")){
+                    return new Sdrink(name, desc, Sdrink.typeOfSdrink.FANTA);
+                }
+                else{
+                    return new Sdrink(name, desc, Sdrink.typeOfSdrink.OTHER);
+                }
+            }
+            else{
+                return  new Sother(name, desc);
+            }
+        }
+        //other
+        else{
+            return  new Others(name, desc);
+        }
+    }
+    private boolean stringToBool(String boool){
+        return Objects.equals(boool, "true");
     }
 }
 
