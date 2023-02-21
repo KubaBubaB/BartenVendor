@@ -1,5 +1,5 @@
 # BartenVendor
-Small side-project, application which tells what cocktails you can make given ingredients you have. It is a mess right now, needs a lot of polish and misses one main functionality which is saving recipes, so as of right now - there is a need to write them every time you reopen the app (but will be fixed soon).
+Small side-project, application which tells what cocktails you can make given ingredients you have. It is a mess right now and needs a lot of polish.
 
 You can do a few things:
 1) Ingredients  
@@ -17,5 +17,5 @@ You can do a few things:
   A) COMING SOON ???(Im planning on adding some very basic bartender guide maybe some dictionary etc.)  
   
   
-There is a lot of room to exploit the nulls returned in dialogs - it will be fixed, but I want to finish main functionalitites first.  
-Created using only Swing - it is basic app, maybe in the far future i will update the interface to something more modern
+There is a lot of room to exploit the nulls returned in dialogs - working on it right now :)  
+Created using only Swing - it is basic library, maybe in the far future i will update the interface to something more modern
