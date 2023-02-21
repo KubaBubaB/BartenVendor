@@ -18,13 +18,13 @@ public class Sdrink extends SOFT {
                 return "Cola";
             }
             case SPARKLING_WATER -> {
-                return "Sparking water";
+                return "Sparkling water";
             }
             case SPRITE -> {
                 return "Sprint";
             }
             case FANTA -> {
-                return "Fanter";
+                return "Fanta";
             }
             case OTHER -> {
                 return "Other";

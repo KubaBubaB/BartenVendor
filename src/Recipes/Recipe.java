@@ -59,18 +59,26 @@ public class Recipe implements Serializable {
     }
 
     public String toString(){
-        //name+method+glass+description+iceType+ingrs(name+kind+subtype+subsubtype+descr+quantity)
+        //name;method;glass;description;iceType;ingrs(@name#kind#isSubSubTypeImportant#subtype#subsubtype#descr#quantity);canBeSubs(@)
         StringBuilder test = new StringBuilder();
-        test.append("{").append(name).append(";").append(method).append(";").append(glass).append(";").append(description).
-                append(";").append(iceType).append(";").append("(");
+        test.append("<").append(name).append(";").append(method).append(";").append(glass).append(";").append(description).
+                append(";").append(iceType).append(";");
         for (int i = 0; i < rIngr.size(); i++) {
-            test.append(rIngr.elementAt(i).getName()).append(";").
-                    append(rIngr.elementAt(i).getKindString()).append(";").
-                    append(rIngr.elementAt(i).getStringOfSubType()).append(";").
-                    append(rIngr.elementAt(i).getStringOfSubSubType()).append(";").append(rIngr.elementAt(i).getDescription()).
-                    append(";").append(quantity.get(i)).append(";");//
+            test.append("@").append(rIngr.elementAt(i).getName()).append("#").
+                    append(rIngr.elementAt(i).getKindString()).append("#").
+                    append(rIngr.elementAt(i).getIsSubSubTypeImportant()).append("#").
+                    append(rIngr.elementAt(i).getStringOfSubType()).append("#").
+                    append(rIngr.elementAt(i).getStringOfSubSubType()).append("#").append(rIngr.elementAt(i).getDescription());//
         }
-        test.append(")}");
+        test.append(";");
+        for(int i = 0;i < canBeSubstituted.size(); i++){
+            test.append("@").append(canBeSubstituted.get(i));
+        }
+        test.append(";");
+        for(int i = 0;i < quantity.size(); i++){
+            test.append("@").append(quantity.get(i));
+        }
+        test.append(";");
         return test.toString();
     }
 
